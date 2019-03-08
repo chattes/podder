@@ -13,7 +13,7 @@ defmodule Podder.DynamicSupervisor do
   end
 
   def start_work do
-    {:ok, pid} = start_podcast_server
+    {:ok, pid} = start_podcast_server()
   end
 
   defp start_podcast_server do
