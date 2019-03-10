@@ -3,12 +3,18 @@ defmodule Podder.Application do
   # for more information on OTP Applications
   @moduledoc false
   use Application
+  alias Elixir.Registry
 
   def start(_type, _args) do
     # List all child processes to be supervised
     children = [
       # Starts a worker by calling: Podder.Worker.start_link(arg)
       # {Podder.Worker, arg},
+
+      %{
+        id: Registry,
+        start: {Registry, :start_link, [[keys: :unique, name: Podder.Registry]]}
+      },
       %{
         id: Podder.DynamicSupervisor,
         start: {Podder.DynamicSupervisor, :start_link, []}
