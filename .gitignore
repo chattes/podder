@@ -24,3 +24,6 @@ podder-*.tar
 
 #Private Keys
 keys/
+
+#Secret Keys
+*.secrets*
