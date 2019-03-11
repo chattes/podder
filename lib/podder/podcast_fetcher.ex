@@ -8,10 +8,21 @@ defmodule Podder.PodcastFetcher do
   defp add_headers, do: ["X-RapidAPI-Key": Application.get_env(:podder, :api_key)]
   defp process_url(url), do: Application.get_env(:podder, :podcast_base_url) <> url
 
+  def convert_map_keys_to_atoms({k, v}) when is_map(v) do
+    {String.to_atom(k), Enum.map(v, &convert_map_keys(&1)) |> Map.new()}
+  end
+
+  def convert_map_keys_to_atoms({k, v}) do
+    {String.to_atom(k), v}
+  end
+
   defp process_response({:ok, body}) do
     with {:ok, data} <- Poison.decode(body) do
       data
       |> Map.take(@expected_fields_podcast)
+
+      # |> Enum.map(&convert_map_keys_to_atoms(&1))
+      # |> Map.new()
     else
       _ ->
         {:error, "Cannot Fetch PodCast Data"}
