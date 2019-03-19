@@ -1,4 +1,4 @@
-defmodule Podder do
+defmodule Podder.Podcasts do
   use GenServer
   require Logger
   alias Elixir.Registry
@@ -18,6 +18,15 @@ defmodule Podder do
   """
   def init(%{pod_name: name}) do
     new_state = %{pod_name: name}
+    fetch_podcast = Task.async(fn -> Podder.ListenProvider.API.fetch_podcast(name) end)
+
+    new_state =
+      with {:ok, result} <- Task.await(fetch_podcast) do
+        Map.merge(new_state, result)
+      else
+        _ -> new_state
+      end
+
     schedule_work()
     {:ok, new_state}
   end
@@ -34,13 +43,23 @@ defmodule Podder do
   end
 
   def handle_info(:work, state) do
-    # Logger.info("Lets Do some work for #{inspect(state)}")
+    %{pod_name: name} = state
+    new_state = state
+    fetch_podcast = Task.async(fn -> Podder.ListenProvider.API.fetch_podcast(name) end)
+
+    new_state =
+      with {:ok, result} <- Task.await(fetch_podcast) do
+        Map.merge(%{pod_name: name}, result)
+      else
+        _ -> new_state
+      end
+
     schedule_work()
-    {:noreply, state}
+    {:noreply, new_state}
   end
 
   defp schedule_work do
-    Process.send_after(self(), :work, 5000)
+    Process.send_after(self(), :work, 1000 * 60 * 60 * 24)
   end
 
   @doc """
